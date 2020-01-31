@@ -7,16 +7,15 @@ export default class Maid extends React.Component {
 
         this.state = {
             appPath: "",
-            pathToMain: "",
-            pathToNewFolder: "",
-            tagToAdd: "",
+            activeFolder: "",
             managedFolders: [],
-            activeFolderItem: "",
-            pathTargetedFolder: "",
             tagToSearch: "",
             includeTag: [],
             excludeTag: []
         };
+
+        this.changeManagedFolder = this.changeManagedFolder.bind(this);
+        this.addManagedFolder = this.addManagedFolder.bind(this);
     }
 
     componentWillMount() {
@@ -24,36 +23,51 @@ export default class Maid extends React.Component {
         const path = require('path')
         const electron = require('electron');
         const appPath = (electron.app || electron.remote.app).getPath('userData');
-        let content = ""
-        var profileContent = ""
-        let profileExist = true;
-
-        console.log("appPath Maid");
-        console.log(appPath);
-        console.log((electron.app || electron.remote.app).getPath('userData'));
+        let content = "";
 
         // GET USER PROFILE
         this.setState({appPath: appPath});
 
         fs.readFile(path.join(appPath, "fimaidProfile.json"), (err, data) => {
             if (err) {
-                profileExist = false;
                 console.log(err);
             } else {
                 content = JSON.parse(data);
-                console.log("LOOOOOOOOOL");
-                console.log(data);
-                console.log(content.managedFolders);
+                this.setState({managedFolders: content.managedFolders});
             }
         });
+    }
 
-        if (profileExist) {
-            profileContent = content;
-            this.setState({managedFolders: profileContent.managedFolders});
-            console.log("HHEEEEEEEEEEEEEEEEEEEEYYY");
-            console.log(profileContent.managedFolders);
-            console.log(this.state.managedFolders);
+    addManagedFolder() {
+        const fs = window.require('fs')
+        const path = require('path')
+        const electron = require('electron');
+
+        console.log("OOOOPS")
+        console.log(this.state.activeFolder)
+        console.log(this.state.managedFolders)
+
+        var updatedManagedFolders = this.state.managedFolders;
+
+        if (this.state.managedFolders.find((folderName) => {
+            return folderName === this.state.activeFolder;
+        })) {
+            console.log("This folder is already being managed!");
+        } else {
+            updatedManagedFolders.push(this.state.activeFolder);
+            this.setState({ managedFolders: "patate" });
         }
+
+        
+        console.log("OOOOPSIIIIIIIIIIIIIIIIIIIII")
+        console.log(this.state.activeFolder)
+        console.log(this.state.managedFolders)
+    }
+    
+    changeManagedFolder(e) {
+        console.log("CHANGE THE FUCKING VALUE DUMBASS")
+        console.log(e.target.value)
+        this.setState({ activeFolder: e.target.value });
     }
 
     render() {
@@ -67,8 +81,8 @@ export default class Maid extends React.Component {
                                 iconPosition='left'
                                 type='text'
                                 placeholder='Your path here'
-                                onChange={this.handleChangeFolder}
-                                action={{ color: 'violet', content: 'Add', onClick: this.pathScan }}
+                                onChange={this.changeManagedFolder}
+                                action={{ color: 'violet', content: 'Add', onClick: this.addManagedFolder }}
                                 actionPosition='right'
                             />
                         </Menu.Item>
@@ -76,13 +90,13 @@ export default class Maid extends React.Component {
                         <Menu.Item name="scan">
                             <Header as='h1'>
                                 Managed folders
-                                {this.state.appPath}
+                                {this.state.activeFolder}
                             </Header>
                         </Menu.Item>
                         {
                             this.state.managedFolders.map(folder => {
                                 return (
-                                    <Menu.Item name={folder} active={this.state.activeFolderItem === folder} onClick={this.activateFolderItem}>
+                                    <Menu.Item name={folder} active={this.state.activeFolder === folder} onClick={this.activateFolderItem}>
                                         <span><Icon name='right angle' /> {folder.replace('/', '\/')}</span>
                                     </Menu.Item>
                                 );
@@ -94,14 +108,14 @@ export default class Maid extends React.Component {
                 <Grid.Column stretched width={13}>
                     <Container fluid>
                         {
-                            this.state.activeFolderItem === "" ?
+                            this.state.activeFolder === "" ?
                             <Header as='h2'>
                                 Manage your folders
                             </Header>
                             : null
                         }
                         {
-                            this.state.activeFolderItem === "" ?
+                            this.state.activeFolder === "" ?
                             <Grid.Row>
                                 <Icon name='sync' size='big' color='green' /> Sync the folder
                                 <Icon name='delete' size='big' color='orange' /> Stop managing the folder in this profile
@@ -110,15 +124,15 @@ export default class Maid extends React.Component {
                             : null
                         }
                         {
-                            this.state.activeFolderItem === "" ?
+                            this.state.activeFolder === "" ?
                             <List divided verticalAlign='middle'>
                                 {
                                     this.state.managedFolders.map(folder => {
                                         return (
                                             <List.Item>
                                                 <List.Content floated='right'>
-                                                    <Icon name='sync' size='big' color='green' onClick={this.syncJSONFolder.bind(this, folder)} />
-                                                    <Icon name='delete' size='big' color='orange' onClick={this.deleteManagementFromProfile.bind(this, folder)}/>
+                                                    <Icon name='sync' size='big' color='green'  />
+                                                    <Icon name='delete' size='big' color='orange' />
                                                     <Icon name='trash alternate' size='big' color='red' />
                                                 </List.Content>
                                                 <List.Icon name='right angle' size='big' />
@@ -133,14 +147,14 @@ export default class Maid extends React.Component {
 
 
                         {
-                            this.state.activeFolderItem !== "" ?
+                            this.state.activeFolder !== "" ?
                             <Header as='h2'>
                                 Tags for {activeBread}
                             </Header>
                             : null
                         }
                         {
-                            this.state.activeFolderItem !== "" ?
+                            this.state.activeFolder !== "" ?
                             <Grid.Row>
                                 <Input
                                     icon='search'
@@ -156,7 +170,7 @@ export default class Maid extends React.Component {
                         }
                         <br/>
                         {
-                            this.state.activeFolderItem !== "" ?
+                            this.state.activeFolder !== "" ?
                             <Grid.Row>
                                 {
                                     tagList.map(tag => {
@@ -172,7 +186,7 @@ export default class Maid extends React.Component {
                         }
                         <br />
                         {
-                            this.state.activeFolderItem !== "" ?
+                            this.state.activeFolder !== "" ?
                             <Grid.Row>
                                 <Popup
                                     trigger={
@@ -197,7 +211,7 @@ export default class Maid extends React.Component {
                         }
                         <br/>
                         {
-                            this.state.activeFolderItem !== "" ?
+                            this.state.activeFolder !== "" ?
                             <Grid.Row>
                                 {
                                     tagsToInclude.map(tag => {
@@ -222,14 +236,14 @@ export default class Maid extends React.Component {
                         }
 
                         {
-                            this.state.activeFolderItem !== "" ?
+                            this.state.activeFolder !== "" ?
                             <Header as='h2'>
                                 Navigating {active}
                             </Header>
                             : null
                         }
                         {
-                            this.state.activeFolderItem !== ""  ?
+                            this.state.activeFolder !== ""  ?
                             <Breadcrumb>
                             {
                                 breadcrumbsFolderPaths.map(folder => {
@@ -259,7 +273,7 @@ export default class Maid extends React.Component {
                         }
                         <Menu secondary>
                             {
-                                this.state.activeFolderItem !== "" ?
+                                this.state.activeFolder !== "" ?
                                 <Grid>
                                     {
                                         folderList.map(entry => {
