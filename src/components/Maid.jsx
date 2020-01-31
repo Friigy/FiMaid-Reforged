@@ -34,27 +34,12 @@ export default class Maid extends React.Component {
                 this.setState({managedFolders: content.managedFolders});
             }
         });
-
-        
-        this.setState({isMounted: true});
-        console.log("WADDDUUUUUP")
-        console.log(this.state.isMounted)
-    }
-
-    componentWillUnmount(){
-        console.log("HEEEELLLLLOOOO")
-        this.setState({isMounted: false});
     }
 
     addManagedFolder() {
         const fs = window.require('fs')
         const path = require('path')
         const electron = require('electron');
-
-        console.log("OOOOPS")
-        console.log(this.state.activeFolder)
-        console.log(this.state.managedFolders)
-        console.log(this.state.isMounted)
 
         var updatedManagedFolders = this.state.managedFolders;
 
@@ -66,25 +51,13 @@ export default class Maid extends React.Component {
             updatedManagedFolders.push(this.state.activeFolder);
             this.setState({ managedFolders: updatedManagedFolders });
         }
-
-        console.log("OOOOPSIIIIIIIIIIIIIIIIIIIII")
-        console.log(this.state.activeFolder)
-        console.log(this.state.managedFolders)
-        console.log(this.state.isMounted)
     }
     
     changeManagedFolder(e) {
-        console.log("CHANGE THE FUCKING VALUE DUMBASS")
-        console.log(e.target.value)
-        console.log(this.state.managedFolders)
         this.setState({ activeFolder: e.target.value });
     }
 
     render() {
-        console.log("FUCK YOU")
-        console.log(this.state.isMounted)
-        console.log(this.state.managedFolders)
-        console.log(this.state.activeFolder)
         return (
             <Grid>
                 <Grid.Column width={3}>
