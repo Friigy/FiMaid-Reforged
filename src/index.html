@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.11/semantic.min.css"></link>
+</head>
+<body style="overflow: hidden; background-color: rgba(0,0,0,0); margin: 0" >
+  <div id="App"></div>
+</body>
+
+<script type="text/jsx">
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {AppContainer} from 'react-hot-loader';
+
+const fs = window.require('fs')
+const path = require('path')
+const electron = require('electron');
+
+// Profile 
+var content = ""
+var profileExist = true;
+var fimaidProfile = [];
+
+// GET USER PROFILE
+const appPath = (electron.app || electron.remote.app).getPath('userData');
+console.log("appPath");
+console.log(appPath);
+
+// Profile generation
+try {
+    content = fs.readFileSync(path.join(appPath, "fimaidProfile.json"), 'utf-8');
+} catch (err) {
+    profileExist = false;
+}
+if (!profileExist) {
+    try {
+		fimaidProfile = {
+			managedFolders: []
+		}
+        fs.writeFileSync(path.join(appPath, "fimaidProfile.json"), JSON.stringify(fimaidProfile), 'utf-8');
+    } catch (err) {
+        console.log("ERROR");
+        console.log(err);
+    }
+}
+
+const render = () => {
+  const App = require('./app').default;
+  ReactDOM.render(<AppContainer><App /></AppContainer>, document.getElementById('App'));
+}
+
+render();
+if (module.hot) {
+  module.hot.accept(render);
+}
+</script>
+</html>
