@@ -1,15 +1,18 @@
 import React from 'react';
 import { Grid, Input, Menu, Header, Icon, Container, Breadcrumb, Label, Popup, List, Button } from 'semantic-ui-react';
+import 'path';
 
 export default class Maid extends React.Component {
     constructor(props, context) {
         super(props, context);
 
         this.state = {
-            isMounted: false,
             appPath: "",
-            activeFolder: "",
+            newFolder: "",
             managedFolders: [],
+            activeFolder: "",
+            activeBread: "",
+            breadCrumb: "",
             tagToSearch: "",
             includeTag: [],
             excludeTag: []
@@ -43,18 +46,33 @@ export default class Maid extends React.Component {
 
         var updatedManagedFolders = this.state.managedFolders;
 
-        if (this.state.managedFolders.find((folderName) => {
-            return folderName === this.state.activeFolder;
-        })) {
-            console.log("This folder is already being managed!");
+        if (fs.existsSync(this.state.newFolder)) {
+            if (this.state.managedFolders.find((folderName) => {
+                return folderName === this.state.newFolder;
+            })) {
+                console.log("This folder is already being managed!");
+            } else {
+                updatedManagedFolders.push(this.state.newFolder);
+                this.setState({ managedFolders: updatedManagedFolders });
+
+                fs.writeFile(path.join(appPath, "fimaidProfile.json"), JSON.stringify({managedFolders: updatedManagedFolders}), (err) => {
+                    if (err) throw err;
+                    console.log("File Saved Successfully");
+                });
+            }
+            this.setState({ activeFolder: this.state.newFolder, activeBread: folder })
         } else {
-            updatedManagedFolders.push(this.state.activeFolder);
-            this.setState({ managedFolders: updatedManagedFolders });
+            console.log("Path does not exist");
         }
     }
     
     changeManagedFolder(e) {
-        this.setState({ activeFolder: e.target.value });
+        this.setState({ newFolder: e.target.value });
+    }
+    
+    changeActiveFolder(folder) {
+        var breadCrumb = folder.split(path.sep).pop();
+        this.setState({ activeFolder: folder, activeBread: folder, breadCrumb: breadCrumb });
     }
 
     render() {
@@ -75,15 +93,14 @@ export default class Maid extends React.Component {
                         </Menu.Item>
 
                         <Menu.Item name="scan">
-                            <Header as='h1'>
+                            <Header as='h2'>
                                 Managed folders
-                                {this.state.activeFolder}
                             </Header>
                         </Menu.Item>
                         {
                             this.state.managedFolders.map(folder => {
                                 return (
-                                    <Menu.Item name={folder} active={this.state.activeFolder === folder} onClick={this.activateFolderItem}>
+                                    <Menu.Item name={folder} active={this.state.activeFolder === folder} onClick={(e) => this.changeActiveFolder(folder)}>
                                         <span><Icon name='right angle' /> {folder.replace('/', '\/')}</span>
                                     </Menu.Item>
                                 );
@@ -92,14 +109,7 @@ export default class Maid extends React.Component {
                     </Menu>
                 </Grid.Column>
 
-                
-            </Grid>
-        );
-    }
-}
-
-/*
-<Grid.Column stretched width={13}>
+                <Grid.Column stretched width={13}>
                     <Container fluid>
                         {
                             this.state.activeFolder === "" ?
@@ -139,209 +149,41 @@ export default class Maid extends React.Component {
                             : null
                         }
 
-
                         {
                             this.state.activeFolder !== "" ?
                             <Header as='h2'>
-                                Tags for {activeBread}
+                                {this.state.activeFolder.toString().split(path.sep).pop()}
                             </Header>
                             : null
                         }
                         {
                             this.state.activeFolder !== "" ?
-                            <Grid.Row>
-                                <Input
-                                    icon='search'
-                                    iconPosition='left'
-                                    type='text'
-                                    placeholder='tag'
-                                    onChange={this.handleChangeTag}
-                                    action={{ color: 'violet', content: 'Add', onClick: this.addTagToFolder }}
-                                    actionPosition='right'
-                                />
-                            </Grid.Row>
-                            : null
-                        }
-                        <br/>
-                        {
-                            this.state.activeFolder !== "" ?
-                            <Grid.Row>
-                                {
-                                    tagList.map(tag => {
-                                        return (
-                                            <Label color={colorList[Math.floor((Math.random() * 10))]} image onClick={this.addTagToInclude.bind(this, tag)}>
-                                                <Icon name='tags' /> {tag}
-                                            </Label>
-                                        )
-                                    })
-                                }
-                            </Grid.Row>
-                            : null
-                        }
-                        <br />
-                        {
-                            this.state.activeFolder !== "" ?
-                            <Grid.Row>
-                                <Popup
-                                    trigger={
-                                        <Input
-                                            icon='tags'
-                                            iconPosition='left'
-                                            type='text'
-                                            placeholder='Search for specific tags'
-                                            onChange={this.handleChangeSearchTag}
-                                            action={{ color: 'olive', content: 'Search', onClick: this.addTagToSearch }}
-                                            actionPosition='right'
-                                        />
-                                    }
-                                    content='Write your tags separated by a comma, no spaces "music,work,pictures,..."'
-                                    position='right center'
-                                    wide='very'
-                                    style={{ opacity: 0.7 }}
-                                    inverted
-                                />
-                            </Grid.Row>
-                            : null
-                        }
-                        <br/>
-                        {
-                            this.state.activeFolder !== "" ?
-                            <Grid.Row>
-                                {
-                                    tagsToInclude.map(tag => {
-                                        return (
-                                            <Label color='green' image onClick={this.addTagToExclude.bind(this, tag)}>
-                                                <Icon name='tags' /> {tag}
-                                            </Label>
-                                        )
-                                    })
-                                }
-                                {
-                                    tagsToExclude.map(tag => {
-                                        return (
-                                            <Label color='red' image onClick={this.deleteTagFromExclude.bind(this, tag)}>
-                                                <Icon name='tags' /> {tag}
-                                            </Label>
-                                        )
-                                    })
-                                }
-                            </Grid.Row>
-                            : null
-                        }
-
-                        {
-                            this.state.activeFolder !== "" ?
-                            <Header as='h2'>
-                                Navigating {active}
-                            </Header>
-                            : null
-                        }
-                        {
-                            this.state.activeFolder !== ""  ?
                             <Breadcrumb>
-                            {
-                                breadcrumbsFolderPaths.map(folder => {
-                                    if (activeBread === folder.folder) {
-                                        return (
-                                            <span>
-                                                <Breadcrumb.Section active={activeBread === folder.folder}>
-                                                    {folder.folder}
-                                                </Breadcrumb.Section>
-                                                <Breadcrumb.Divider icon='right angle'/>
-                                            </span>
-                                        );
-                                    } else {
-                                        return (
-                                            <span>
-                                                <Breadcrumb.Section link onClick={this.navigatingBread.bind(this, folder.pathToFolder)}>
-                                                    {folder.folder}
-                                                </Breadcrumb.Section>
-                                                <Breadcrumb.Divider icon='right angle'/>
-                                            </span>
-                                        );
-                                    }
-                                })
-                            }
+                                {
+                                    this.state.breadCrumb.toString().split(path.sep).map(bread => {
+                                        if (bread === this.state.breadCrumb.toString().split(path.sep).pop()) {
+                                            return (
+                                                <span>
+                                                    <Breadcrumb.Divider>{path.sep}</Breadcrumb.Divider>
+                                                    <Breadcrumb.Section active={true}>{bread}</Breadcrumb.Section>
+                                                </span>
+                                            )
+                                        } else {
+                                            return (
+                                                <span>
+                                                    <Breadcrumb.Divider>{path.sep}</Breadcrumb.Divider>
+                                                    <Breadcrumb.Section link>{bread}</Breadcrumb.Section>
+                                                </span>
+                                            )
+                                        }
+                                    })
+                                }
                             </Breadcrumb>
                             : null
                         }
-                        <Menu secondary>
-                            {
-                                this.state.activeFolder !== "" ?
-                                <Grid>
-                                    {
-                                        folderList.map(entry => {
-                                            var colorFolder = "";
-                                            var numberOfInclusion = [];
-                                            var numberOfExclusion = [];
-                                            
-                                            for (var i = 0; i < this.state.includeTag.length; i++) {
-                                                if (entry.tags.includes(this.state.includeTag[i])) {
-                                                    numberOfInclusion.push("true");
-                                                } else {
-                                                    numberOfInclusion.push("false");
-                                                }
-                                            }
-                                            
-                                            for (i = 0; i < this.state.excludeTag.length; i++) {
-                                                if (entry.tags.includes(this.state.excludeTag[i])) {
-                                                    numberOfExclusion.push("true");
-                                                } else {
-                                                    numberOfExclusion.push("false");
-                                                }
-                                            }
-
-                                            if (numberOfInclusion.includes("true") && numberOfInclusion.includes("false")) {
-                                                colorFolder = "olive";
-                                            } else if (numberOfInclusion.includes("true")) {
-                                                colorFolder = "green";
-                                            } else {
-                                                colorFolder = "grey";
-                                            }
-
-                                            if (numberOfExclusion.includes("true") && numberOfInclusion.includes("true")) {
-                                                colorFolder = "orange";
-                                            } else if (numberOfExclusion.includes("true")) {
-                                                colorFolder = "red";
-                                            }
-                                            return (
-                                                <Grid.Column width={2}>
-                                                    <Menu.Item onClick={this.navigatingFolder.bind(this, entry.entry)}>
-                                                        <Container textAlign='center'>
-                                                                <Icon
-                                                                    name='folder'
-                                                                    size='huge'
-                                                                    color={colorFolder}
-                                                                /> <br />
-                                                                {entry.entry}
-                                                        </Container>
-                                                    </Menu.Item>
-                                                </Grid.Column>
-                                            );
-                                        })
-                                    }
-                                    {
-                                        fileList.map(entry => {
-                                            return (
-                                                <Grid.Column width={2}>
-                                                    <Menu.Item>
-                                                        <Container textAlign='center'>
-                                                                <Icon
-                                                                    name='file outline'
-                                                                    size='huge'
-                                                                    color='grey'
-                                                                /> <br />
-                                                                {entry}
-                                                        </Container>
-                                                    </Menu.Item>
-                                                </Grid.Column>
-                                            )
-                                        })
-                                    }
-                                </Grid>
-                                : null
-                            }
-                        </Menu>
                     </Container>
-                </Grid.Column>
-*/
+                </Grid.Column>                
+            </Grid>
+        );
+    }
+}
