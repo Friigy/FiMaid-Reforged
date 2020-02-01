@@ -13,6 +13,12 @@ export default class Maid extends React.Component {
             activeFolder: "",
             activeBread: "",
             breadCrumb: "",
+            activeFolderFolderList: {
+                entry: []
+            },
+            activeFolderFileList: {
+                entry: []
+            },
             tagToSearch: "",
             includeTag: [],
             excludeTag: []
@@ -39,6 +45,45 @@ export default class Maid extends React.Component {
         });
     }
 
+    addToActiveFolderFolderList(folder) {
+        var newFolderFolderList = this.state.activeFolderFolderList;
+        newFolderFolderList.entry.push(folder);
+        this.setState({ activeFolderFolderList: newFolderFolderList });
+    }
+
+    addToActiveFolderFileList(file) {
+        var newFolderFileList = this.state.activeFolderFileList;
+        newFolderFileList.entry.push(file);
+        this.setState({ activeFolderFileList: newFolderFileList });
+    }
+
+    checkFolderFile(pathTarget) {
+        fs.stat(pathTarget, (err, stat) => {
+            if(stat.isDirectory()) {
+                this.addToActiveFolderFolderList(pathTarget);
+            }
+            if(stat.isFile()) {
+                this.addToActiveFolderFileList(pathTarget);
+            }
+        });
+    }
+
+    readActiveDir(folder) {
+        var newFolderFolderList = this.state.activeFolderFolderList;
+        var newFolderFileList = this.state.activeFolderFileList;
+        newFolderFolderList.entry = [];
+        newFolderFileList.entry = [];
+
+        this.setState({ activeFolderFolderList: newFolderFolderList, activeFolderFileList: newFolderFileList });
+
+        fs.readdir(folder, (err, content) => {
+            if (err) throw err;
+            content.forEach(file => {
+                this.checkFolderFile(path.join(folder, file));
+            })
+        });
+    }
+
     addManagedFolder() {
         const fs = window.require('fs')
         const path = require('path')
@@ -60,17 +105,23 @@ export default class Maid extends React.Component {
                     console.log("File Saved Successfully");
                 });
             }
-            this.setState({ activeFolder: this.state.newFolder, activeBread: folder })
+
+            this.readActiveDir(this.state.newFolder);
+
+            var breadCrumb = folder.split(path.sep).pop();
+            this.setState({ activeFolder: this.state.newFolder, activeBread: this.state.newFolder, breadCrumb: breadCrumb });
         } else {
             console.log("Path does not exist");
         }
     }
     
-    changeManagedFolder(e) {
+    changeInputManagedFolder(e) {
         this.setState({ newFolder: e.target.value });
     }
     
     changeActiveFolder(folder) {
+        this.readActiveDir(folder);
+
         var breadCrumb = folder.split(path.sep).pop();
         this.setState({ activeFolder: folder, activeBread: folder, breadCrumb: breadCrumb });
     }
@@ -86,7 +137,7 @@ export default class Maid extends React.Component {
                                 iconPosition='left'
                                 type='text'
                                 placeholder='Your path here'
-                                onChange={(e) => this.changeManagedFolder(e)}
+                                onChange={(e) => this.changeInputManagedFolder(e)}
                                 action={{ color: 'violet', content: 'Add', onClick: () => this.addManagedFolder() }}
                                 actionPosition='right'
                             />
@@ -101,7 +152,7 @@ export default class Maid extends React.Component {
                             this.state.managedFolders.map(folder => {
                                 return (
                                     <Menu.Item name={folder} active={this.state.activeFolder === folder} onClick={(e) => this.changeActiveFolder(folder)}>
-                                        <span><Icon name='right angle' /> {folder.replace('/', '\/')}</span>
+                                        <span><Icon name='right angle' /> {folder.toString().split(path.sep).pop()}</span>
                                     </Menu.Item>
                                 );
                             })
@@ -181,6 +232,50 @@ export default class Maid extends React.Component {
                             </Breadcrumb>
                             : null
                         }
+                        <Menu secondary style={{ overflow: "hidden" }}>
+                            {
+                                this.state.activeFolderItem !== "" ?
+                                <Grid>
+                                        {
+                                            this.state.activeFolderFolderList.entry.map(entry => {
+                                                return (
+                                                    <Grid.Column width={2}>
+                                                        <Menu.Item>
+                                                            <Container textAlign='center'>
+                                                                    <Icon
+                                                                        name='folder'
+                                                                        size='huge'
+                                                                        color='grey'
+                                                                    /> <br />
+                                                                    {entry.toString().split(path.sep).pop()}
+                                                            </Container>
+                                                        </Menu.Item>
+                                                    </Grid.Column>
+                                                );
+                                            })
+                                        }
+                                        {
+                                            this.state.activeFolderFileList.entry.map(entry => {
+                                                return (
+                                                    <Grid.Column width={2}>
+                                                        <Menu.Item>
+                                                            <Container textAlign='center'>
+                                                                    <Icon
+                                                                        name='file outline'
+                                                                        size='huge'
+                                                                        color='grey'
+                                                                    /> <br />
+                                                                    {entry.toString().split(path.sep).pop()}
+                                                            </Container>
+                                                        </Menu.Item>
+                                                    </Grid.Column>
+                                                )
+                                            })
+                                        }
+                                </Grid>
+                                : null
+                            }
+                        </Menu>
                     </Container>
                 </Grid.Column>                
             </Grid>
