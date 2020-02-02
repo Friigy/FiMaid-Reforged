@@ -125,6 +125,30 @@ export default class Maid extends React.Component {
         var breadCrumb = folder.split(path.sep).pop();
         this.setState({ activeFolder: folder, activeBread: folder, breadCrumb: breadCrumb });
     }
+    
+    navigateBread(bread) {
+        var breadCrumb = this.state.breadCrumb;
+        var tmp = breadCrumb.split(path.sep);
+
+        for(var i = 0; i < tmp.length; i++) {
+            if (tmp[i] === bread) tmp.splice(i, tmp.length - i + 1);
+        }
+
+        tmp.pop();
+        breadCrumb = this.state.activeFolder + path.sep + tmp.join(path.sep);
+        this.changeActiveBread(breadCrumb);
+    }
+    
+    changeActiveBread(folder) {
+        this.readActiveDir(folder);
+
+        var tmp = folder.split(path.sep);
+        for(var i = 1; i < folder.split(path.sep).length; i++) {
+            if (i < this.state.activeFolder.split(path.sep).length) tmp.shift();
+        }
+        var breadCrumb = tmp.join(path.sep);
+        this.setState({ activeBread: folder, breadCrumb: breadCrumb });
+    }
 
     render() {
         return (
@@ -223,7 +247,7 @@ export default class Maid extends React.Component {
                                             return (
                                                 <span>
                                                     <Breadcrumb.Divider>{path.sep}</Breadcrumb.Divider>
-                                                    <Breadcrumb.Section link>{bread}</Breadcrumb.Section>
+                                                    <Breadcrumb.Section link onClick={(e) => this.navigateBread(bread)}>{bread}</Breadcrumb.Section>
                                                 </span>
                                             )
                                         }
@@ -236,42 +260,42 @@ export default class Maid extends React.Component {
                             {
                                 this.state.activeFolderItem !== "" ?
                                 <Grid>
-                                        {
-                                            this.state.activeFolderFolderList.entry.map(entry => {
-                                                return (
-                                                    <Grid.Column width={2}>
-                                                        <Menu.Item>
-                                                            <Container textAlign='center'>
-                                                                    <Icon
-                                                                        name='folder'
-                                                                        size='huge'
-                                                                        color='grey'
-                                                                    /> <br />
-                                                                    {entry.toString().split(path.sep).pop()}
-                                                            </Container>
-                                                        </Menu.Item>
-                                                    </Grid.Column>
-                                                );
-                                            })
-                                        }
-                                        {
-                                            this.state.activeFolderFileList.entry.map(entry => {
-                                                return (
-                                                    <Grid.Column width={2}>
-                                                        <Menu.Item>
-                                                            <Container textAlign='center'>
-                                                                    <Icon
-                                                                        name='file outline'
-                                                                        size='huge'
-                                                                        color='grey'
-                                                                    /> <br />
-                                                                    {entry.toString().split(path.sep).pop()}
-                                                            </Container>
-                                                        </Menu.Item>
-                                                    </Grid.Column>
-                                                )
-                                            })
-                                        }
+                                    {
+                                        this.state.activeFolderFolderList.entry.map(entry => {
+                                            return (
+                                                <Grid.Column width={2}>
+                                                    <Menu.Item onClick={(e) => this.changeActiveBread(entry)}>
+                                                        <Container textAlign='center'>
+                                                            <Icon
+                                                                name='folder'
+                                                                size='huge'
+                                                                color='grey'
+                                                            /> <br />
+                                                            {entry.toString().split(path.sep).pop()}
+                                                        </Container>
+                                                    </Menu.Item>
+                                                </Grid.Column>
+                                            );
+                                        })
+                                    }
+                                    {
+                                        this.state.activeFolderFileList.entry.map(entry => {
+                                            return (
+                                                <Grid.Column width={2}>
+                                                    <Menu.Item>
+                                                        <Container textAlign='center'>
+                                                            <Icon
+                                                                name='file outline'
+                                                                size='huge'
+                                                                color='grey'
+                                                            /> <br />
+                                                            {entry.toString().split(path.sep).pop()}
+                                                        </Container>
+                                                    </Menu.Item>
+                                                </Grid.Column>
+                                            )
+                                        })
+                                    }
                                 </Grid>
                                 : null
                             }
