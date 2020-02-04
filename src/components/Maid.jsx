@@ -91,7 +91,7 @@ export default class Maid extends React.Component {
 
         var updatedManagedFolders = this.state.managedFolders;
 
-        if (fs.existsSync(this.state.newFolder)) {
+        if (fs.existsSync(this.state.newFolder) && this.state.newFolder.charAt(this.state.newFolder.length - 1) !== path.sep) {
             if (this.state.managedFolders.find((folderName) => {
                 return folderName === this.state.newFolder;
             })) {
@@ -111,7 +111,7 @@ export default class Maid extends React.Component {
             var breadCrumb = folder.split(path.sep).pop();
             this.setState({ activeFolder: this.state.newFolder, activeBread: this.state.newFolder, breadCrumb: breadCrumb });
         } else {
-            console.log("Path does not exist");
+            console.log("Path does not exist. Don't leave a " + path.sep + " ath the end of the path.");
         }
     }
     
@@ -131,11 +131,17 @@ export default class Maid extends React.Component {
         var tmp = breadCrumb.split(path.sep);
 
         for(var i = 0; i < tmp.length; i++) {
-            if (tmp[i] === bread) tmp.splice(i, tmp.length - i + 1);
+            if (tmp[i] === bread) {
+                tmp.splice(i + 1, tmp.length - i);
+            }
         }
 
-        tmp.pop();
-        breadCrumb = this.state.activeFolder + path.sep + tmp.join(path.sep);
+        tmp.shift();
+        if (tmp.length > 1) {
+            breadCrumb = this.state.activeFolder + path.sep + tmp.join(path.sep);
+        } else {
+            breadCrumb = this.state.activeFolder
+        }
         this.changeActiveBread(breadCrumb);
     }
     
