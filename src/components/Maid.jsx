@@ -137,7 +137,7 @@ export default class Maid extends React.Component {
         }
 
         tmp.shift();
-        if (tmp.length > 1) {
+        if (tmp.length > 0) {
             breadCrumb = this.state.activeFolder + path.sep + tmp.join(path.sep);
         } else {
             breadCrumb = this.state.activeFolder
